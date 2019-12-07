@@ -1,0 +1,210 @@
+package com.jakey.dao;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import com.jakey.model.Course;
+import com.jakey.util.StringUtil;
+
+
+
+public class CourseDao {
+	public int courseAdd(Connection con,Course course)throws Exception{
+		String sql="insert into t_course value(null,?,?,?,?,0)";
+		PreparedStatement  pstmt=con.prepareStatement(sql);
+		pstmt.setString(1,course.getCourseName());
+		pstmt.setString(2, course.getCourseTime());
+		pstmt.setString(3, course.getCourseTeacher());
+		pstmt.setInt(4, course.getCapacity());
+		return pstmt.executeUpdate();
+
+	}
+	public ResultSet courseList(Connection con,Course course) throws SQLException{
+		StringBuffer sb=new StringBuffer("select * from t_course");
+		if(StringUtil.isNotEmpty(course.getCourseName())){
+			sb.append(" and courseName like '%"+course.getCourseName()+"%'");
+		}
+		if(StringUtil.isNotEmpty(course.getCourseTime())){
+			sb.append(" and courseTime like '%"+course.getCourseTime()+"%'");
+		}
+		if(StringUtil.isNotEmpty(course.getCourseTeacher())){
+			sb.append(" and courseTeacher like '%"+course.getCourseTeacher()+"%'");
+		}
+PreparedStatement pstmt=con.prepareStatement(sb.toString().replaceFirst("and", "where"));
+return pstmt.executeQuery();
+		}
+	public int courseDelete(Connection con,String courseId)throws Exception{
+		String sql="delete from t_course where courseId=?";
+		PreparedStatement  pstmt=con.prepareStatement(sql);
+		pstmt.setString(1, courseId);
+		return pstmt.executeUpdate();
+
+	}
+	public int courseModify(Connection con,Course course)throws Exception{
+		String sql="update t_course set courseName=?,courseTime=?,courseTeacher=?,capacity=? where courseId=? ";
+		PreparedStatement pstmt=con.prepareStatement(sql);
+		pstmt.setString(1, course.getCourseName());
+		pstmt.setString(2, course.getCourseTime());
+		pstmt.setString(3, course.getCourseTeacher());
+		pstmt.setInt(4,course.getCapacity() );
+		pstmt.setInt(5, course.getCourseId());
+		return pstmt.executeUpdate();
+		
+	}
+	public ResultSet UnderFullList(Connection con,Course course) throws SQLException{
+		String sql="select * from t_course where capacity>numSelected";
+		PreparedStatement pstmt=con.prepareStatement(sql);
+		return pstmt.executeQuery();
+	}
+	}
+package com.jakey.dao;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
+import com.jakey.model.Admin;
+import com.jakey.model.Student;
+
+
+public class LogOnDao {
+	/**
+	 * 登录验证
+	 * @param con
+	 * @param student
+	 * @return
+	 * @throws Exception
+	 */
+public Student login(Connection con,Student student)throws Exception{
+	Student resultStu=null;
+	String sql="select * from t_slogon where Sno=? and Spassword=?";
+PreparedStatement pstmt=con.prepareStatement(sql);
+pstmt.setInt(1,student.getSno());
+System.out.println(student.getSno());
+
+
+pstmt.setString(2, student.getSpassword());
+ResultSet rs=pstmt.executeQuery();
+if(rs.next()){
+	resultStu=new Student();
+	resultStu.setSno(rs.getInt("Sno"));
+	resultStu.setSpassword(rs.getString("Spassword"));
+	
+}
+return resultStu;
+
+	}
+public Admin login(Connection con,Admin admin)throws Exception{
+	Admin resultAdmin=null;
+	String sql="select * from t_adminlogon where adminId=? and password=?";
+PreparedStatement pstmt=con.prepareStatement(sql);
+pstmt.setInt(1,admin.getAdminId());
+pstmt.setString(2,admin.getPassword());
+ResultSet rs=pstmt.executeQuery();
+if(rs.next()){
+	resultAdmin=new Admin();
+	resultAdmin.setAdminId(rs.getInt("adminId"));
+	resultAdmin.setPassword(rs.getString("password"));
+package com.jakey.dao;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
+import com.jakey.model.Course;
+import com.jakey.model.Selection;
+
+public class SelectionDao {
+	public int SelectionAdd(Connection con,Selection selection)throws Exception{
+		String sql="insert into t_selection value(null,?,?)";
+		PreparedStatement  pstmt=con.prepareStatement(sql);
+		pstmt.setInt(1,selection.getCourseId());
+		pstmt.setInt(2, selection.getSno());
+
+		return pstmt.executeUpdate();
+
+	}
+	public int NumSelectedAdd(Connection con,int courseId)throws Exception{
+		String sql="update t_course set numSelected=numSelected+1 where courseId=?";
+		PreparedStatement  pstmt=con.prepareStatement(sql);
+		pstmt.setInt(1, courseId);
+		return pstmt.executeUpdate();
+	}
+	public ResultSet SelectedList(Connection con,int sno)throws Exception{
+		String sql="select  * from t_selection s,t_course c where s.Sno=? and s.courseId=c.courseId ";
+		PreparedStatement pstmt=con.prepareStatement(sql);
+		pstmt.setInt(1,sno);
+		return pstmt.executeQuery();
+	}
+	public int SelectionCancel(Connection con,Selection selection)throws Exception{
+		String sql="delete from t_selection where courseId=? and Sno=?";
+		PreparedStatement  pstmt=con.prepareStatement(sql);
+		pstmt.setInt(1,selection.getCourseId());
+		pstmt.setInt(2, selection.getSno());
+		return pstmt.executeUpdate();
+	}
+	public int NumSelectedMinus(Connection con,int courseId)throws Exception{
+		String sql="update t_course set numSelected=numSelected-1 where courseId=?";
+		PreparedStatement  pstmt=con.prepareStatement(sql);
+		pstmt.setInt(1, courseId);
+		return pstmt.executeUpdate();
+	}
+}
+package com.jakey.dao;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import javax.swing.JOptionPane;
+
+import com.jakey.model.Course;
+import com.jakey.model.Sinfo;
+import com.jakey.model.Student;
+import com.jakey.util.StringUtil;
+
+public class StudentDao {
+	public ResultSet StudentList(Connection con,Sinfo sinfo) throws SQLException{
+		StringBuffer sb=new StringBuffer("select * from t_sinfo ");
+if(sinfo.getSno()!=-1){
+	sb.append(" and Sno="+sinfo.getSno());
+}
+if(StringUtil.isNotEmpty(sinfo.getSname())){
+	sb.append(" and Sname like '%"+sinfo.getSname()+"%'");
+}
+PreparedStatement pstmt=con.prepareStatement(sb.toString().replaceFirst("and", "where"));
+return pstmt.executeQuery();
+		}
+	
+public ResultSet PasswordList(Connection con,Student student)throws SQLException{
+	StringBuffer sb=new StringBuffer("select * from t_slogon ");
+	if(student.getSno()!=-1){
+		sb.append("where Sno="+student.getSno());
+		}
+		PreparedStatement pstmt=con.prepareStatement(sb.toString());
+		return pstmt.executeQuery();
+	
+}
+public int PasswordModify(Connection con,Student student)throws Exception{
+	String sql="update t_slogon set Spassword=? where Sno=? ";
+	PreparedStatement pstmt=con.prepareStatement(sql);
+	pstmt.setString(1, student.getSpassword());
+	pstmt.setInt(2, student.getSno());
+	return pstmt.executeUpdate();
+	
+} 
+
+}
+
+
+
+	
+}
+return resultAdmin;
+
+	}
+}
+在这一系列的实验中，我基本掌握了java的编程规则、知识要点和一些小技巧、特别是面向对象和gui，对于java也有了更深一步的了解，也使自己的实践能力得到了提高。
